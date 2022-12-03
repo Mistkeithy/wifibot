@@ -9,7 +9,10 @@
 #include <errno.h>
 #include <arpa/inet.h>
 
-char base64_map[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P','Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
+char base64_map[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 
+'M', 'N', 'O', 'P','Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 
+'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 
+'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
 
 char* base64_encode(char* plain) {
 
@@ -61,19 +64,20 @@ int main(int argc, char* argv[]) {
 		"GET /login.html"
 		};
 
-	// Recognize by:
+	// Recognize by
 	char** recognizeList[] = {
-		"",
+		"GPON Home Gateway",
+		"url=/login.html"
 		};
 
 	// Vendor List
 	char** vendorList[] = {
-		"NONAME",
+		"UNKNOWN",
 		"CALLIX / Ericsson GPON",
 		"TP-LINK 2010-2015"
 		};
 	int vendorCnt = 0;
-
+	
 	// Credentials
 	char** users[] = {
 		"admin",
@@ -121,13 +125,24 @@ int main(int argc, char* argv[]) {
 	while((n = read(sockfd, buff, sizeof(buff) - 1)) > 0) {
 		buff[n] = 0;
 
+		// Recognize the router
+		for (int i = 0; i <= (sizeof(recognizeList)/8)-1; ++i) {
+			
+			// First match
+			if (strstr(buff,recognizeList[i])) {
+
+				if (recognizeList[i] == recognizeList[1]) {
+					vendorCnt = 1;
+					break;
+				}
+
+			}
+
+		}
+
 		//if (strstr(buff,"d") != NULL) {
 		//	write(sockfd, "root\n", 5);
 		//}
-
-		if (strstr(buff,"Password") != NULL) {
-			
-		}
 
 		//if (strstr(buff,"Password") != NULL) {
 		//	write(sockfd, "admin\n", 6);
@@ -142,6 +157,8 @@ int main(int argc, char* argv[]) {
 		fputs(buff, stdout);
 		printf("\n");
 	}
+
+	printf(vendorList[vendorCnt]);
 
 	return 0;
 }
