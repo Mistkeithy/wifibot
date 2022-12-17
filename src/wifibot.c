@@ -9,46 +9,6 @@
 #include <errno.h>
 #include <arpa/inet.h>
 
-char base64_map[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 
-'M', 'N', 'O', 'P','Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 
-'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 
-'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '+', '/'};
-
-char* base64_encode(char* plain) {
-
-	char counts = 0;
-	char buffer[3];
-	char* cipher = malloc(strlen(plain) * 4 / 3 + 4);
-	int i = 0, c = 0;
-
-	for (i = 0; plain[i] != '\0'; i++) {
-		buffer[counts++] = plain[i];
-		if (counts == 3) {
-			cipher[c++] = base64_map[buffer[0] >> 2];
-			cipher[c++] = base64_map[((buffer[0] & 0x03) << 4) + (buffer[1] >> 4)];
-			cipher[c++] = base64_map[((buffer[1] & 0x0f) << 2) + (buffer[2] >> 6)];
-			cipher[c++] = base64_map[buffer[2] & 0x3f];
-			counts = 0;
-		}
-	}
-
-	if (counts > 0) {
-		cipher[c++] = base64_map[buffer[0] >> 2];
-		if (counts == 1) {
-			cipher[c++] = base64_map[(buffer[0] & 0x03) << 4];
-			cipher[c++] = '=';
-		} else {
-			cipher[c++] = base64_map[((buffer[0] & 0x03) << 4) + (buffer[1] >> 4)];
-			cipher[c++] = base64_map[(buffer[1] & 0x0f) << 2];
-		}
-		cipher[c++] = '=';
-	}
-
-	cipher[c] = '\0';
-	return cipher;
-}
-
-
 int main(int argc, char* argv[]) {
 	int sockfd = 0,
 		n = 0,
@@ -56,18 +16,21 @@ int main(int argc, char* argv[]) {
 	struct sockaddr_in
 		serv_addr;
 	char buff[1024],
-		connAddr[] = "10.94.221.254";
+		connAddr[] = "192.168.1.1";
 
 	// HTTP Headers
 	char** headers[] = {
 		"GET /",
-		"GET /login.html"
+		"POST /GponForm/LoginForm",
+		"XWebPageName=index&username=admin&password=admin"
 		};
+	int headerCnt = 0;
 
 	// Recognize by
 	char** recognizeList[] = {
 		"GPON Home Gateway",
-		"url=/login.html"
+		"url=/login.html",
+		"TPLINK"
 		};
 
 	// Vendor List
@@ -92,6 +55,8 @@ int main(int argc, char* argv[]) {
 		"Admin",
 		"12345"
 		};
+
+	do {
 
 	memset(buff, '\0', sizeof(buff));
 
@@ -119,7 +84,7 @@ int main(int argc, char* argv[]) {
 	//	}
 	//}
 	
-	write(sockfd, headers[0], sizeof(headers[0]));
+	write(sockfd, headers[headerCnt], sizeof(headers[headerCnt]));
 	write(sockfd, "\n\n", 2);
 	// web part
 	while((n = read(sockfd, buff, sizeof(buff) - 1)) > 0) {
@@ -132,7 +97,14 @@ int main(int argc, char* argv[]) {
 			if (strstr(buff,recognizeList[i])) {
 
 				if (recognizeList[i] == recognizeList[1]) {
+					headerCnt = 1;
 					vendorCnt = 1;
+					break;
+				}
+
+				if (recognizeList[i] == recognizeList[2]) {
+					headerCnt = 2;
+					vendorCnt = 2;
 					break;
 				}
 
@@ -159,6 +131,8 @@ int main(int argc, char* argv[]) {
 	}
 
 	printf(vendorList[vendorCnt]);
+
+	} while (vendorCnt == 1);
 
 	return 0;
 }
