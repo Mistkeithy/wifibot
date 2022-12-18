@@ -11,27 +11,45 @@
 
 typedef struct Socket Socket;
 struct Socket {
-  int id;
+  int sockfd;
+  int cursor;
+  short error;
+  char buff[4096];
+  struct sockaddr_in osockaddr;
   void (*write)(Socket *, char data[]);
-  int (*connect)(Socket *self, char address[], int port);
+  void (*send)(Socket *);
+  int (*read)(Socket *);
+  void (*display)(Socket *);
+  int (*connect)(Socket *this, char address[], int port);
 };
 
-void Socket_write(struct Socket *self, char data[]) {
-  write(self->id, data, sizeof(data));
+void Socket_write(struct Socket *this, char data[]) {
+  write(this->sockfd, data, sizeof(data));
 }
 
-int Socket_connect(Socket *self, char address[], int port) {
-  struct sockaddr_in addr;
+int Socket_read(struct Socket *this) {
+  return this->cursor = read(this->sockfd, this->buff, sizeof(this->buff) - 1);
+}
 
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(port);
-  addr.sin_addr.s_addr = inet_addr(address);
-  return connect(self->id, (struct sockaddr *)&addr, sizeof(*address));
+void Socket_display(struct Socket *this) {
+  fputs(this->buff, stdout);
+  printf("\n");
+}
+
+int Socket_connect(struct Socket *this, char address[], int port) {
+  this->osockaddr.sin_family = AF_INET;
+  this->osockaddr.sin_port = htons(port);
+  this->osockaddr.sin_addr.s_addr = inet_addr(address);
+  return connect(this->sockfd, (struct sockaddr *)&this->osockaddr,
+                 sizeof(this->osockaddr));
 }
 
 struct Socket newSocket() {
   struct Socket sock;
-  sock.id = socket(AF_INET, SOCK_STREAM, 0);
+  if ((sock.sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    sock.error = 1;
+  sock.cursor = 0;
+  memset(sock.buff, '\0', sizeof(sock.buff));
   sock.write = Socket_write;
   sock.connect = Socket_connect;
   return sock;
