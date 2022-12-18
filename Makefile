@@ -19,11 +19,11 @@ run:
 clean:
 	rm -rf $(OUT_PATH)
 
-wifibot: wifibot.o base64.o 
-	$(CC) -o $(OUT_PATH)/wifibot $(OUT_PATH)/wifibot.o $(OUT_PATH)/base64.o
+dev:
+	make rebuild && make run 
+
+wifibot: wifibot.o
+	$(CC) -o $(OUT_PATH)/wifibot $(OUT_PATH)/wifibot.o
 
 wifibot.o:
 	$(CC) -o $(OUT_PATH)/wifibot.o -c src/wifibot.c
-
-base64.o:
-	$(CC) -o $(OUT_PATH)/base64.o -c src/base64.c
