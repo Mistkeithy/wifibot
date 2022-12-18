@@ -11,23 +11,24 @@
 
 typedef struct Socket Socket;
 struct Socket {
-  int sockfd;
-  int cursor;
+  short sockfd;
+  short cursor;
   short error;
   char buff[4096];
   struct sockaddr_in osockaddr;
   void (*write)(Socket *, char data[]);
   void (*send)(Socket *);
-  int (*read)(Socket *);
+  short (*read)(Socket *);
   void (*display)(Socket *);
-  int (*connect)(Socket *this, char address[], int port);
+  short (*connect)(Socket *this, char address[], int port);
 };
 
 void Socket_write(struct Socket *this, char data[]) {
   write(this->sockfd, data, sizeof(data));
 }
 
-int Socket_read(struct Socket *this) {
+short Socket_read(struct Socket *this) {
+  this->buff[this->cursor] = 0;
   return this->cursor = read(this->sockfd, this->buff, sizeof(this->buff) - 1);
 }
 
@@ -36,7 +37,7 @@ void Socket_display(struct Socket *this) {
   printf("\n");
 }
 
-int Socket_connect(struct Socket *this, char address[], int port) {
+short Socket_connect(struct Socket *this, char address[], int port) {
   this->osockaddr.sin_family = AF_INET;
   this->osockaddr.sin_port = htons(port);
   this->osockaddr.sin_addr.s_addr = inet_addr(address);
